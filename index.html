@@ -1,581 +1,1347 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="왕의 성배">
-<meta name="theme-color" content="#1a1025">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="왕의 성배" />
+<meta name="theme-color" content="#0f0a1e" />
 <title>왕의 성배</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #1a1025; --bg2: #241535; --bg3: #2e1a42;
-    --border: rgba(255,255,255,0.12); --border2: rgba(255,255,255,0.22);
-    --text: #f0e8ff; --text2: #b09ccc; --text3: #7a6890;
-    --accent: #9b6dff; --accent2: #c4a0ff;
-    --red: #ff6b7a; --gold: #f5c842;
-  }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100dvh; overflow-x: hidden; }
-  #app { max-width: 480px; margin: 0 auto; min-height: 100dvh; }
-  .screen { display: none; flex-direction: column; min-height: 100dvh; padding: 1rem; }
-  .screen.active { display: flex; }
+:root {
+  --bg-deep:    #0f0a1e;
+  --bg-card:    #1a1230;
+  --bg-surface: #231843;
+  --bg-glass:   rgba(255,255,255,0.04);
+  --gold:       #d4a843;
+  --gold-light: #f0c96a;
+  --gold-dim:   #8a6a20;
+  --crimson:    #c0392b;
+  --crimson-light: #e74c3c;
+  --purple:     #7b2d8b;
+  --purple-light: #9b59b6;
+  --text-primary:   #f0e8d0;
+  --text-secondary: #a89878;
+  --text-dim:       #5a5070;
+  --border:     rgba(212,168,67,0.2);
+  --border-hover: rgba(212,168,67,0.5);
+  --radius-sm:  8px;
+  --radius-md:  14px;
+  --radius-lg:  20px;
+}
 
-  .top-bar { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0 1rem; }
-  .top-bar h1 { font-size: 20px; font-weight: 600; }
-  .icon-btn { background: var(--bg3); border: 0.5px solid var(--border); border-radius: 10px; padding: 8px 14px; color: var(--text2); font-size: 13px; cursor: pointer; }
-  .icon-btn:active { background: var(--border); }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  .chalice-area { background: var(--bg2); border: 0.5px solid var(--border); border-radius: 16px; padding: 1rem; display: flex; align-items: center; gap: 12px; margin-bottom: 1.25rem; }
-  .chalice-icon { font-size: 32px; }
-  .chalice-info { flex: 1; }
-  .chalice-label { font-size: 12px; color: var(--text3); margin-bottom: 4px; }
-  .chalice-bar-bg { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
-  .chalice-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--gold)); transition: width 0.4s; }
-  .chalice-count { font-size: 20px; font-weight: 600; color: var(--gold); }
+html, body {
+  height: 100%;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: 'Noto Sans KR', sans-serif;
+  overflow-x: hidden;
+}
 
-  .remain-label { text-align: center; font-size: 13px; color: var(--text3); margin-bottom: 1rem; }
-  .remain-label span { color: var(--accent2); font-weight: 600; }
+/* Background pattern */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(123,45,139,0.25) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 20% 100%, rgba(192,57,43,0.15) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
 
-  .deck-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; }
-  .deck-stack { position: relative; width: 160px; height: 224px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-  .deck-stack .layer { position: absolute; width: 160px; height: 224px; border-radius: 16px; border: 0.5px solid var(--border2); background: var(--bg2); }
-  .deck-stack .layer:nth-child(1) { transform: translate(-4px,-4px); }
-  .deck-stack .layer:nth-child(2) { transform: translate(-2px,-2px); }
-  .deck-stack .top-card { position: absolute; width: 160px; height: 224px; border-radius: 16px; border: 1.5px solid var(--accent); background: var(--bg3); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; transition: transform 0.15s, box-shadow 0.15s; }
-  .deck-stack:hover .top-card { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(155,109,255,0.25); }
-  .deck-stack:active .top-card { transform: scale(0.93); }
-  .deck-back-pattern { font-size: 52px; opacity: 0.5; }
-  .deck-back-label { font-size: 13px; color: var(--text3); }
-  .deck-empty { width: 160px; height: 224px; border-radius: 16px; border: 1.5px dashed var(--border2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text3); font-size: 14px; }
-  .deck-empty span { font-size: 36px; opacity: 0.4; }
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4a843' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
 
-  .last-drawn { display: flex; align-items: center; gap: 10px; background: var(--bg2); border: 0.5px solid var(--border); border-radius: 12px; padding: 10px 14px; width: 100%; opacity: 0; transition: opacity 0.3s; }
-  .last-drawn.show { opacity: 1; }
-  .last-drawn-suit { font-size: 22px; }
-  .last-drawn-info { flex: 1; }
-  .last-drawn-rank { font-size: 14px; font-weight: 600; }
-  .last-drawn-spell { font-size: 12px; color: var(--text3); }
-  .last-drawn-btn { font-size: 12px; color: var(--accent2); cursor: pointer; background: none; border: 0.5px solid var(--accent); border-radius: 8px; padding: 5px 10px; }
+#app {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-  .btn { flex: 1; padding: 12px; border-radius: 12px; border: 0.5px solid var(--border); background: var(--bg2); color: var(--text2); font-size: 14px; font-weight: 500; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-  .btn:active { background: var(--bg3); }
-  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .btn.primary:active { background: #7a50e0; }
-  .bottom-row { display: flex; gap: 8px; padding: 1rem 0 0.5rem; margin-top: auto; }
+.screen {
+  display: none;
+  width: 100%;
+  max-width: 440px;
+  padding: 0 1rem 2rem;
+  animation: fadeIn 0.4s ease;
+}
+.screen.active { display: flex; flex-direction: column; }
 
-  /* ===== REVEAL OVERLAY ===== */
-  #reveal-overlay { display: none; position: fixed; inset: 0; z-index: 100; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; padding: 1.25rem; overflow-y: auto; }
-  #reveal-overlay.active { display: flex; }
-  #reveal-bg { position: fixed; inset: 0; z-index: 99; background: rgba(10,4,20,0.9); backdrop-filter: blur(6px); animation: bgFadeIn 0.3s ease; pointer-events: none; display: none; }
-  @keyframes bgFadeIn { from{opacity:0} to{opacity:1} }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
-  #particle-canvas { position: fixed; inset: 0; z-index: 100; pointer-events: none; }
+/* ── HEADER ── */
+.game-header {
+  text-align: center;
+  padding: 2.5rem 0 1.5rem;
+}
+.crown-glyph {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 0.5rem;
+  animation: float 4s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+.game-title {
+  font-family: 'Cinzel', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 30px rgba(212,168,67,0.4);
+}
+.game-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
 
-  .reveal-card { position: relative; z-index: 101; width: 180px; height: 252px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; perspective: 800px; }
-  .reveal-card-inner { width: 100%; height: 100%; border-radius: 20px; transform-style: preserve-3d; animation: flip3d 0.55s cubic-bezier(0.23,1,0.32,1) forwards; }
-  @keyframes flip3d { 0%{transform:rotateY(180deg) scale(0.7);opacity:0.2} 60%{transform:rotateY(-8deg) scale(1.05);opacity:1} 80%{transform:rotateY(4deg) scale(1.02)} 100%{transform:rotateY(0deg) scale(1)} }
-  .reveal-card-front { position: absolute; inset: 0; border-radius: 20px; border: 1.5px solid var(--border2); background: var(--bg2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; backface-visibility: hidden; }
-  .big-suit { font-size: 56px; line-height: 1; }
-  .big-rank { font-size: 26px; font-weight: 700; }
-  .suit-red { color: var(--red); }
-  .suit-black { color: var(--text); }
-  .reveal-card-front.glow-red  { animation: glowRed 0.6s 0.5s ease forwards; }
-  .reveal-card-front.glow-black{ animation: glowBlack 0.6s 0.5s ease forwards; }
-  .reveal-card-front.glow-king { animation: glowKing 0.7s 0.4s ease forwards; }
-  @keyframes glowRed   { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 40px 10px rgba(255,107,122,0.45)} }
-  @keyframes glowBlack { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 40px 10px rgba(155,109,255,0.45)} }
-  @keyframes glowKing  { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 60px 20px rgba(245,200,66,0.55)} }
+/* ── PANELS ── */
+.panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin-bottom: 0.75rem;
+  position: relative;
+  overflow: hidden;
+}
+.panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212,168,67,0.4), transparent);
+}
+.panel-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}
 
-  /* 룰 박스 */
-  .spell-box { position: relative; z-index: 101; width: 100%; background: var(--bg2); border: 0.5px solid var(--border); border-radius: 16px; overflow: hidden; animation: slideUp 0.45s 0.35s cubic-bezier(0.23,1,0.32,1) both; }
-  @keyframes slideUp { from{transform:translateY(24px);opacity:0} to{transform:translateY(0);opacity:1} }
+/* ── INPUTS ── */
+input[type="text"] {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-family: 'Noto Sans KR', sans-serif;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  margin-bottom: 0.5rem;
+}
+input[type="text"]:focus {
+  border-color: var(--gold-dim);
+  box-shadow: 0 0 0 3px rgba(212,168,67,0.1);
+}
+input[type="text"]::placeholder { color: var(--text-dim); }
 
-  /* 일러스트 영역 */
-  .spell-illustration { width: 100%; height: 110px; display: flex; align-items: center; justify-content: center; background: var(--bg3); border-bottom: 0.5px solid var(--border); }
-  .spell-illustration svg { width: 100px; height: 90px; }
+/* ── BUTTONS ── */
+.btn {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  transition: all 0.2s;
+  letter-spacing: 0.02em;
+}
+.btn:hover:not(:disabled) {
+  border-color: var(--border-hover);
+  background: rgba(212,168,67,0.08);
+}
+.btn:active:not(:disabled) { transform: scale(0.97); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  .spell-content { padding: 1rem 1.25rem; text-align: center; }
-  .spell-name { font-size: 18px; font-weight: 600; color: var(--accent2); margin-bottom: 6px; }
-  .spell-rule { font-size: 13px; color: var(--text2); line-height: 1.8; }
+.btn-gold {
+  background: linear-gradient(135deg, #b8860b, #d4a843, #b8860b);
+  border-color: var(--gold);
+  color: #0f0a1e;
+  font-weight: 700;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 20px rgba(212,168,67,0.3);
+}
+.btn-gold:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d4a843, #f0c96a, #d4a843);
+  box-shadow: 0 4px 30px rgba(212,168,67,0.5);
+}
 
-  .king-warning { position: relative; z-index: 101; background: rgba(245,200,66,0.12); border: 0.5px solid var(--gold); border-radius: 10px; padding: 10px 14px; font-size: 13px; color: var(--gold); text-align: center; animation: slideUp 0.4s 0.5s both; }
-  .reveal-close-btn { position: relative; z-index: 101; width: 100%; padding: 14px; border-radius: 12px; border: 0.5px solid var(--border); background: var(--bg2); color: var(--text2); font-size: 14px; font-weight: 500; cursor: pointer; animation: slideUp 0.4s 0.55s both; -webkit-tap-highlight-color: transparent; }
-  .reveal-close-btn:active { background: var(--bg3); }
+.btn-crimson {
+  background: rgba(192,57,43,0.2);
+  border-color: rgba(192,57,43,0.5);
+  color: #e88;
+}
+.btn-crimson:hover:not(:disabled) {
+  background: rgba(192,57,43,0.35);
+}
 
-  #flash { position: fixed; inset: 0; z-index: 200; pointer-events: none; opacity: 0; }
-  #flash.red    { background: rgba(255,107,122,0.18); animation: flashAnim 0.35s ease; }
-  #flash.gold   { background: rgba(245,200,66,0.22); animation: flashAnim 0.45s ease; }
-  #flash.purple { background: rgba(155,109,255,0.18); animation: flashAnim 0.35s ease; }
-  @keyframes flashAnim { 0%{opacity:0} 30%{opacity:1} 100%{opacity:0} }
+.btn-row { display: flex; gap: 8px; }
+.btn-row .btn { flex: 1; }
+.btn-sm { padding: 0.6rem 1rem; font-size: 0.85rem; width: auto; }
 
-  /* === EDIT === */
-  #screen-edit { gap: 0; }
-  .edit-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 1rem; }
-  .edit-row { display: flex; gap: 10px; align-items: flex-start; background: var(--bg2); border: 0.5px solid var(--border); border-radius: 12px; padding: 10px 12px; }
-  .rank-badge { min-width: 38px; height: 38px; border-radius: 8px; background: var(--bg3); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: var(--accent2); flex-shrink: 0; }
-  .edit-fields { flex: 1; display: flex; flex-direction: column; gap: 5px; }
-  .edit-fields input, .edit-fields textarea { width: 100%; font-family: inherit; font-size: 13px; color: var(--text); background: var(--bg3); border: 0.5px solid var(--border); border-radius: 8px; padding: 7px 10px; outline: none; }
-  .edit-fields input:focus, .edit-fields textarea:focus { border-color: var(--accent); }
-  .edit-fields textarea { resize: vertical; min-height: 52px; line-height: 1.6; }
-  .edit-bottom { display: flex; gap: 8px; padding-top: 0.75rem; }
+/* ── DIVIDER ── */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin: 0.25rem 0;
+  letter-spacing: 0.1em;
+}
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── ROOM CODE ── */
+.room-code-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+.room-code-big {
+  font-family: 'Cinzel', serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.2em;
+  text-shadow: 0 0 20px rgba(212,168,67,0.5);
+}
+.room-code-hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+/* ── PLAYER LIST ── */
+.players-list { display: flex; flex-direction: column; gap: 6px; }
+.player-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.6rem 0.9rem;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+}
+.player-chip.online { border-color: rgba(46,213,115,0.3); }
+.player-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #2ed573;
+  box-shadow: 0 0 6px #2ed573;
+  flex-shrink: 0;
+}
+.player-name-text { color: var(--text-primary); font-weight: 500; }
+.host-badge {
+  margin-left: auto;
+  font-size: 0.65rem;
+  color: var(--gold-dim);
+  background: rgba(212,168,67,0.1);
+  border: 1px solid rgba(212,168,67,0.2);
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-family: 'Cinzel', serif;
+}
+.me-badge {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+}
+
+/* ── GAME STATUS BAR ── */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 0.75rem;
+}
+.status-pill {
+  flex: 1;
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+.status-pill strong {
+  display: block;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* ── KINGS TRACKER ── */
+.kings-panel {
+  text-align: center;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.kings-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 0.5rem 0;
+}
+.king-slot {
+  width: 48px; height: 48px;
+  border-radius: 10px;
+  border: 1.5px dashed var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: var(--text-dim);
+  transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+.king-slot.filled {
+  border-style: solid;
+  border-color: var(--gold-dim);
+  background: rgba(212,168,67,0.1);
+  color: var(--gold);
+  transform: scale(1.05);
+}
+.king-slot.danger {
+  border-color: var(--crimson);
+  background: rgba(192,57,43,0.2);
+  color: var(--crimson-light);
+  animation: king-pulse 0.7s ease-in-out infinite;
+}
+@keyframes king-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(192,57,43,0); }
+  50%       { transform: scale(1.1); box-shadow: 0 0 16px 4px rgba(192,57,43,0.4); }
+}
+.kings-count-text {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* ── TURN BANNER ── */
+.turn-banner {
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.my-turn {
+  background: rgba(212,168,67,0.12);
+  border: 1px solid rgba(212,168,67,0.4);
+  color: var(--gold-light);
+  animation: shimmer 2s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212,168,67,0); }
+  50%       { box-shadow: 0 0 20px 0 rgba(212,168,67,0.2); }
+}
+.others-turn {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.turn-name { color: var(--text-primary); font-weight: 700; }
+
+/* ── CARD AREA ── */
+.card-area {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  text-align: center;
+  margin-bottom: 0.75rem;
+  min-height: 230px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.playing-card {
+  width: 108px;
+  height: 150px;
+  border-radius: 10px;
+  border: 2px solid rgba(255,255,255,0.15);
+  background: #fdf6e3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3);
+  animation: cardReveal 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes cardReveal {
+  from { transform: rotateY(90deg) scale(0.8); opacity: 0; }
+  to   { transform: rotateY(0) scale(1); opacity: 1; }
+}
+.card-rank { font-size: 2.2rem; font-weight: 700; line-height: 1; }
+.card-suit { font-size: 2rem; line-height: 1; }
+.card-red  { color: #c0392b; }
+.card-black{ color: #1a1a2e; }
+
+.card-back {
+  width: 108px; height: 150px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #1a0a2e, #2d1650);
+  border: 2px solid var(--gold-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  position: relative;
+  overflow: hidden;
+}
+.card-back::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(212,168,67,0.3);
+  border-radius: 6px;
+}
+
+.card-who-info {
+  margin-top: 16px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+.card-who-info strong { color: var(--text-primary); }
+
+/* ── RULE DISPLAY ── */
+.rule-display {
+  background: var(--bg-surface);
+  border: 1px solid rgba(212,168,67,0.25);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  display: none;
+}
+.rule-rank-badge {
+  display: inline-block;
+  font-family: 'Cinzel', serif;
+  font-size: 1.2rem;
+  color: var(--gold);
+  font-weight: 700;
+  margin-right: 10px;
+  min-width: 28px;
+  text-align: center;
+}
+.rule-text-content {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ── GAME LOG ── */
+.game-log {
+  max-height: 110px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.log-entry {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  line-height: 1.4;
+}
+.log-entry:last-child { border-bottom: none; }
+.log-time {
+  color: var(--text-dim);
+  margin-right: 6px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+}
+.log-king { color: var(--gold); }
+.log-gameover { color: var(--crimson-light); font-weight: 500; }
+
+/* ── OVERLAYS ── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 1.5rem;
+  backdrop-filter: blur(4px);
+}
+.overlay.hidden { display: none; }
+
+.overlay-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  max-width: 340px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  animation: overlayIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes overlayIn {
+  from { transform: scale(0.8) translateY(20px); opacity: 0; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
+}
+.overlay-box::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212,168,67,0.6), transparent);
+}
+
+.overlay-icon { font-size: 3.5rem; display: block; margin-bottom: 0.75rem; }
+.overlay-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.05em;
+}
+.overlay-msg {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.25rem;
+  line-height: 1.7;
+}
+
+/* ── LOADING SPINNER ── */
+.spinner {
+  display: inline-block;
+  width: 20px; height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-msg {
+  font-size: 0.8rem;
+  color: #e88;
+  min-height: 20px;
+  padding-top: 4px;
+}
+
+/* ── WAITING MESSAGE ── */
+.waiting-msg {
+  text-align: center;
+  padding: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* ── FIREBASE CONFIG NOTICE ── */
+.config-notice {
+  background: rgba(212,168,67,0.08);
+  border: 1px solid rgba(212,168,67,0.3);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+.config-notice code {
+  background: rgba(0,0,0,0.4);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--gold-light);
+  font-size: 0.8rem;
+}
+
+/* ── RULES LIST ── */
+.rules-list { text-align: left; }
+.rule-item {
+  display: flex;
+  gap: 12px;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+  align-items: flex-start;
+}
+.rule-item:last-child { border-bottom: none; }
+.rule-item-rank {
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  color: var(--gold);
+  min-width: 24px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.rule-item-desc { color: var(--text-secondary); line-height: 1.5; }
+
+/* realtime indicator */
+.realtime-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #2ed573;
+  box-shadow: 0 0 6px #2ed573;
+  margin-right: 5px;
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 </style>
 </head>
 <body>
-<div id="flash"></div>
-<canvas id="particle-canvas"></canvas>
-
 <div id="app">
-  <!-- MAIN -->
-  <div id="screen-main" class="screen active">
-    <div class="top-bar">
-      <span style="font-size:22px">👑</span>
-      <h1>왕의 성배</h1>
-      <button class="icon-btn" onclick="goEdit()">룰 편집</button>
+
+  <!-- ═══════════════════════════════ LOBBY ═══════════════════════════════ -->
+  <div id="screen-lobby" class="screen active">
+    <div class="game-header">
+      <span class="crown-glyph">👑</span>
+      <div class="game-title">왕의 성배</div>
+      <div class="game-subtitle">실시간 멀티플레이어</div>
     </div>
-    <div class="chalice-area">
-      <span class="chalice-icon">🏆</span>
-      <div class="chalice-info">
-        <div class="chalice-label">성배에 모인 왕</div>
-        <div class="chalice-bar-bg"><div class="chalice-bar-fill" id="kings-bar" style="width:0%"></div></div>
-      </div>
-      <div class="chalice-count"><span id="kings-count">0</span>/4</div>
+
+    <!-- Firebase 설정 안내 (초기에만 표시) -->
+    <div class="config-notice" id="firebase-notice">
+      🔥 <strong style="color:var(--gold)">Firebase 설정 필요</strong><br>
+      하단 스크립트의 <code>firebaseConfig</code>를 본인의 Firebase 프로젝트로 교체하세요.<br>
+      <a href="https://console.firebase.google.com" target="_blank" style="color:var(--gold-light)">console.firebase.google.com</a>에서 무료로 생성 가능합니다.
     </div>
-    <div class="remain-label">남은 카드 <span id="remain-count">52</span>장</div>
-    <div class="deck-area">
-      <div id="deck-stack-wrap"></div>
-      <div class="last-drawn" id="last-drawn">
-        <span class="last-drawn-suit" id="ld-suit"></span>
-        <div class="last-drawn-info">
-          <div class="last-drawn-rank" id="ld-rank"></div>
-          <div class="last-drawn-spell" id="ld-spell"></div>
-        </div>
-        <button class="last-drawn-btn" onclick="showReveal()">다시 보기</button>
-      </div>
+
+    <div class="panel">
+      <div class="panel-label">닉네임</div>
+      <input type="text" id="input-name" placeholder="내 이름 입력..." maxlength="12" autocomplete="off" />
+      <div id="name-error" class="error-msg"></div>
     </div>
-    <div class="bottom-row">
-      <button class="btn" onclick="resetGame()">새 게임</button>
+
+    <div class="panel">
+      <div class="panel-label">새 방 만들기</div>
+      <button class="btn btn-gold" onclick="createRoom()">✦ 새 게임 시작</button>
+    </div>
+
+    <div class="divider">또는</div>
+
+    <div class="panel">
+      <div class="panel-label">방 코드로 입장</div>
+      <input type="text" id="input-room" placeholder="방 코드 4자리..." maxlength="4"
+             style="text-transform:uppercase; letter-spacing:0.12em; font-family:'Cinzel',serif; font-size:1.1rem; text-align:center;"
+             autocomplete="off" />
+      <button class="btn" style="margin-top:6px;" onclick="joinRoom()">입장하기 →</button>
+      <div id="join-error" class="error-msg"></div>
     </div>
   </div>
 
-  <!-- REVEAL OVERLAY -->
-  <div id="reveal-bg"></div>
-  <div id="reveal-overlay">
-    <div class="reveal-card">
-      <div class="reveal-card-inner">
-        <div class="reveal-card-front" id="reveal-card-front">
-          <span class="big-suit" id="reveal-suit"></span>
-          <span class="big-rank" id="reveal-rank"></span>
-        </div>
+  <!-- ═══════════════════════════════ WAITING ROOM ══════════════════════════ -->
+  <div id="screen-waiting" class="screen">
+    <div class="game-header" style="padding-top:1.5rem;">
+      <span class="crown-glyph" style="font-size:2rem;">🏰</span>
+      <div class="game-title" style="font-size:1.5rem;">대기실</div>
+      <div class="game-subtitle">
+        <span class="realtime-dot"></span>실시간 연결 중
       </div>
     </div>
-    <div class="spell-box">
-      <div class="spell-illustration" id="reveal-illustration"></div>
-      <div class="spell-content">
-        <div class="spell-name" id="reveal-spell-name"></div>
-        <div class="spell-rule" id="reveal-spell-rule"></div>
+
+    <div class="room-code-box">
+      <div class="room-code-big" id="display-room-code">----</div>
+      <div class="room-code-hint">친구들에게 이 코드를 알려주세요</div>
+    </div>
+
+    <button class="btn btn-sm" onclick="copyRoomCode()" style="margin-bottom:0.75rem;">
+      📋 코드 복사
+    </button>
+
+    <div class="panel">
+      <div class="panel-label">접속한 플레이어 <span id="player-count-waiting">(0명)</span></div>
+      <div class="players-list" id="players-list-waiting"></div>
+    </div>
+
+    <div id="host-controls" style="display:none;">
+      <button class="btn btn-gold" id="btn-start" onclick="startGame()" disabled>
+        게임 시작 (최소 2명 필요)
+      </button>
+    </div>
+    <div id="guest-waiting-msg" class="waiting-msg" style="display:none;">
+      <span class="spinner"></span>방장이 게임을 시작하길 기다리는 중...
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ GAME ════════════════════════════════ -->
+  <div id="screen-game" class="screen">
+
+    <div style="padding-top:1rem;"></div>
+
+    <div class="status-bar">
+      <div class="status-pill">
+        남은 카드
+        <strong id="cards-remaining">52</strong>
+      </div>
+      <div class="status-pill">
+        방 코드
+        <strong id="game-room-code" style="font-family:'Cinzel',serif; color:var(--gold);">----</strong>
+      </div>
+      <div class="status-pill">
+        <span class="realtime-dot"></span>
+        <strong style="font-size:0.7rem; color:var(--text-secondary);">실시간</strong>
       </div>
     </div>
-    <div class="king-warning" id="king-warning" style="display:none">⚠️ 네 번째 왕! 성배를 모두 마셔야 합니다!</div>
-    <button class="reveal-close-btn" onclick="closeReveal()">← 테이블로 돌아가기</button>
+
+    <!-- Kings tracker -->
+    <div class="kings-panel">
+      <div class="panel-label" style="margin-bottom:6px;">성배에 모인 왕</div>
+      <div class="kings-row" id="kings-tracker">
+        <div class="king-slot" id="king-0">♔</div>
+        <div class="king-slot" id="king-1">♔</div>
+        <div class="king-slot" id="king-2">♔</div>
+        <div class="king-slot" id="king-3">♔</div>
+      </div>
+      <div class="kings-count-text" id="kings-count-text">0 / 4</div>
+    </div>
+
+    <!-- Turn -->
+    <div id="my-turn-banner" class="turn-banner my-turn" style="display:none;">
+      ✨ 내 차례입니다! 카드를 뽑으세요
+    </div>
+    <div id="others-turn-banner" class="turn-banner others-turn" style="display:none;">
+      <span class="turn-name" id="current-turn-name"></span>의 차례...
+    </div>
+
+    <!-- Card display -->
+    <div class="card-area" id="card-area">
+      <div id="card-display">
+        <div class="card-back">👑</div>
+      </div>
+      <div class="card-who-info" id="card-who-info"></div>
+    </div>
+
+    <button class="btn btn-gold" id="btn-draw" onclick="drawCard()" style="margin-bottom:0.75rem;" disabled>
+      카드 뽑기
+    </button>
+
+    <!-- Rule -->
+    <div class="rule-display" id="rule-display">
+      <span class="rule-rank-badge" id="rule-rank"></span>
+      <span class="rule-text-content" id="rule-text"></span>
+    </div>
+
+    <!-- Log -->
+    <div class="panel">
+      <div class="panel-label">게임 기록</div>
+      <div class="game-log" id="game-log">
+        <div class="log-entry"><span class="log-time">—</span>게임을 기다리는 중...</div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-sm" onclick="viewRules()">📜 규칙</button>
+      <button class="btn btn-sm" onclick="leaveGame()">← 나가기</button>
+      <button class="btn btn-sm btn-crimson" onclick="confirmNewGame()">새 게임</button>
+    </div>
+    <div style="height:1rem;"></div>
   </div>
 
-  <!-- GAME OVER -->
-  <div id="screen-gameover" class="screen" style="align-items:center;justify-content:center;gap:1.5rem;text-align:center;">
-    <div style="font-size:72px">💀</div>
-    <div>
-      <div style="font-size:24px;font-weight:600;color:var(--gold);margin-bottom:8px">저주의 성배 완성!</div>
-      <div style="font-size:14px;color:var(--text2);line-height:1.8">네 번째 왕이 소환되었습니다.<br>성배를 마신 자여, 왕국에 경의를.</div>
-    </div>
-    <div style="width:100%;display:flex;gap:8px;">
-      <button class="btn primary" style="flex:1" onclick="resetGame()">새 게임 시작</button>
-    </div>
-  </div>
+</div><!-- #app -->
 
-  <!-- EDIT -->
-  <div id="screen-edit" class="screen">
-    <div class="top-bar" style="padding-bottom:1rem">
-      <span style="font-size:18px">✏️</span>
-      <h1>룰 편집</h1>
-      <div style="width:60px"></div>
-    </div>
-    <div class="edit-scroll" id="edit-list"></div>
-    <div class="edit-bottom">
-      <button class="btn" onclick="resetRules()">기본값</button>
-      <button class="btn primary" onclick="saveEdit()">저장</button>
-      <button class="btn" onclick="goMain()">취소</button>
-    </div>
+<!-- ════════════════════════ OVERLAYS ════════════════════════ -->
+
+<div class="overlay hidden" id="overlay-king">
+  <div class="overlay-box">
+    <span class="overlay-icon" id="king-overlay-icon">⚠️</span>
+    <div class="overlay-title" id="king-overlay-title">왕이 나타났습니다!</div>
+    <div class="overlay-msg" id="king-overlay-msg"></div>
+    <button class="btn btn-gold" onclick="closeOverlay('overlay-king')">확인</button>
   </div>
 </div>
 
-<script>
-const SUITS = [
-  {sym:'♥',cls:'suit-red'},{sym:'♦',cls:'suit-red'},
-  {sym:'♣',cls:'suit-black'},{sym:'♠',cls:'suit-black'}
-];
+<div class="overlay hidden" id="overlay-gameover">
+  <div class="overlay-box">
+    <span class="overlay-icon">💀</span>
+    <div class="overlay-title">저주의 성배 완성!</div>
+    <div class="overlay-msg" id="gameover-msg"></div>
+    <button class="btn btn-gold" onclick="startNewGame()" style="margin-bottom:8px;">
+      새 게임 시작
+    </button>
+    <button class="btn" onclick="closeOverlay('overlay-gameover')">계속 보기</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlay-rules">
+  <div class="overlay-box" style="max-height:85vh; overflow-y:auto; max-width:380px;">
+    <div class="overlay-title">📜 게임 규칙</div>
+    <div class="rules-list" id="rules-content" style="margin:1rem 0;"></div>
+    <button class="btn" onclick="closeOverlay('overlay-rules')">닫기</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlay-loading">
+  <div class="overlay-box" style="padding:2rem;">
+    <span class="spinner" style="width:36px;height:36px;border-width:3px;"></span>
+    <div style="margin-top:1rem; color:var(--text-secondary); font-size:0.9rem;" id="loading-msg">처리 중...</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════ SCRIPTS ════════════════════════ -->
+<script type="module">
+import { initializeApp }                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, set, get, update, onValue, off }
+                                             from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  FIREBASE CONFIG — 본인 프로젝트 설정으로 교체하세요          ║
+// ║  https://console.firebase.google.com 에서 생성              ║
+// ╚══════════════════════════════════════════════════════════════╝
+const firebaseConfig = {
+  apiKey:            "AIzaSyBK1bCsbGkUKiUTj8SM257dUYXdK1cA87Q",
+  authDomain:        "king-s-cup-26cde.firebaseapp.com",
+  databaseURL:       "https://king-s-cup-26cde-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "king-s-cup-26cde",
+  storageBucket:     "king-s-cup-26cde.firebasestorage.app",
+  messagingSenderId: "205604723914",
+  appId:             "1:205604723914:web:10948d2ec27b428e6b2833",
+  measurementId:     "G-LL0VGP7ZWW"
+};
+
+// ─── 초기화 ───────────────────────────────────────────────────
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+// ─── 게임 데이터 ──────────────────────────────────────────────
+const SUITS = ['♠','♥','♦','♣'];
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-
-/* ── SVG 일러스트 ── */
-const ILLUSTRATIONS = {
-  'A': `<svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- 폭포수: 여러 물줄기가 아래로 -->
-    <defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6ee7ff"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0.3"/></linearGradient></defs>
-    <!-- 물줄기들 -->
-    <rect x="20" y="10" width="8" height="50" rx="4" fill="url(#wg)" opacity="0.9"/>
-    <rect x="34" y="5"  width="8" height="58" rx="4" fill="url(#wg)" opacity="0.8"/>
-    <rect x="48" y="10" width="8" height="50" rx="4" fill="url(#wg)" opacity="0.9"/>
-    <rect x="62" y="5"  width="8" height="58" rx="4" fill="url(#wg)" opacity="0.8"/>
-    <rect x="76" y="10" width="8" height="50" rx="4" fill="url(#wg)" opacity="0.9"/>
-    <!-- 물보라 -->
-    <ellipse cx="24" cy="64" rx="10" ry="5" fill="#6ee7ff" opacity="0.4"/>
-    <ellipse cx="38" cy="67" rx="10" ry="5" fill="#6ee7ff" opacity="0.4"/>
-    <ellipse cx="52" cy="64" rx="10" ry="5" fill="#6ee7ff" opacity="0.4"/>
-    <ellipse cx="66" cy="67" rx="10" ry="5" fill="#6ee7ff" opacity="0.4"/>
-    <ellipse cx="80" cy="64" rx="10" ry="5" fill="#6ee7ff" opacity="0.4"/>
-    <!-- 작은 물방울 -->
-    <circle cx="28" cy="72" r="2.5" fill="#93c5fd" opacity="0.7"/>
-    <circle cx="52" cy="75" r="2"   fill="#93c5fd" opacity="0.6"/>
-    <circle cx="72" cy="71" r="2.5" fill="#93c5fd" opacity="0.7"/>
-  </svg>`,
-
-  '2': `<svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- 화살표가 한 사람을 가리킴 -->
-    <!-- 왼쪽 사람 (나) -->
-    <circle cx="25" cy="28" r="10" fill="#9b6dff" opacity="0.7"/>
-    <rect x="18" y="40" width="14" height="22" rx="5" fill="#9b6dff" opacity="0.5"/>
-    <!-- 오른쪽 사람 (대상) -->
-    <circle cx="75" cy="28" r="10" fill="#ff6b7a" opacity="0.8"/>
-    <rect x="68" y="40" width="14" height="22" rx="5" fill="#ff6b7a" opacity="0.6"/>
-    <!-- 화살표 -->
-    <line x1="40" y1="35" x2="62" y2="35" stroke="#f5c842" stroke-width="3" stroke-linecap="round"/>
-    <polygon points="62,29 74,35 62,41" fill="#f5c842"/>
-    <!-- 술잔 (대상 아래) -->
-    <path d="M70 68 Q75 80 80 68" stroke="#ff6b7a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    <line x1="75" y1="80" x2="75" y2="85" stroke="#ff6b7a" stroke-width="2.5" stroke-linecap="round"/>
-    <line x1="70" y1="85" x2="80" y2="85" stroke="#ff6b7a" stroke-width="2.5" stroke-linecap="round"/>
-  </svg>`,
-
-  '3': `<svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- 혼자 마시는 사람 -->
-    <circle cx="50" cy="22" r="13" fill="#9b6dff" opacity="0.8"/>
-    <rect x="40" y="37" width="20" height="26" rx="6" fill="#9b6dff" opacity="0.6"/>
-    <!-- 팔 들어 마시는 동작 -->
-    <path d="M60 45 Q72 38 68 52" stroke="#9b6dff" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <!-- 술잔 -->
-    <path d="M64 46 Q70 58 76 46" stroke="#f5c842" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    <line x1="70" y1="58" x2="70" y2="64" stroke="#f5c842" stroke-width="2.5" stroke-linecap="round"/>
-    <line x1="65" y1="64" x2="75" y2="64" stroke="#f5c842" stroke-width="2.5" stroke-linecap="round"/>
-    <!-- 화살표 (자기 자신) -->
-    <path d="M50 72 Q50 82 50 78" stroke="#c4a0ff" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 2"/>
-    <polygon points="45,76 50,85 55,76" fill="#c4a0ff" opacity="0.8"/>
-  </svg>`,
-
-  '4': `<svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- 손바닥 바닥 짚기 -->
-    <!-- 테이블 -->
-    <rect x="10" y="62" width="80" height="8" rx="4" fill="#5f5e5a" opacity="0.6"/>
-    <!-- 손 3개 (빠름/느림) -->
-    <!-- 빠른 손 (이미 닿음) -->
-    <path d="M30 62 Q28 50 32 44 Q36 38 38 44 L38 54 Q42 54 42 60 L42 62" fill="#c4a0ff" opacity="0.9"/>
-    <!-- 중간 손 -->
-    <path d="M50 62 Q48 48 52 42 Q56 36 58 44 L58 56 Q62 56 62 62" fill="#9b6dff" opacity="0.7"/>
-    <!-- 느린 손 (아직 내려오는 중) -->
-    <path d="M72 62 Q70 44 74 36 Q78 28 80 38 L80 54 Q84 54 84 62" fill="#ff6b7a" opacity="0.6"/>
-    <!-- 느린 손에 X -->
-    <line x1="70" y1="20" x2="80" y2="30" stroke="#ff6b7a" stroke-width="2.5" stroke-linecap="round"/>
-    <line x1="80" y1="20" x2="70" y2="30" stroke="#ff6b7a" stroke-width="2.5" stroke-linecap="round"/>
-  </svg>`,
-
-  '5': `<svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- 남자 3명 -->
-    <circle cx="20" cy="22" r="9" fill="#6ee7ff" opacity="0.8"/>
-    <rect x="14" y="33" width="12" height="18" rx="4" fill="#6ee7ff" opacity="0.6"/>
-    <circle cx="50" cy="22" r="9" fill="#6ee7ff" opacity="0.8"/>
-    <rect x="44" y="33" width="12" height="18" rx="4" fill="#6ee7ff" opacity="0.6"/>
-    <circle cx="80" cy="22" r="9" fill="#6ee7ff" opacity="0.8"/>
-    <rect x="74" y="33" width="12" height="18" rx="4" fill="#6ee7ff" opacity="0.6"/>
-    <!-- 술잔들 -->
-    <path d="M15 58 Q20 68 25 58" stroke="#f5c842" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <line x1="20" y1="68" x2="20" y2="73" stroke="#f5c842" stroke-width="2" stroke-linecap="round"/>
-    <path d="M45 58 Q50 68 55 58" stroke="#f5c842" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <line x1="50" y1="68" x2="50" y2="73" stroke="#f5c842" stroke-width="2" stroke-linecap="round"/>
-    <path d="M75 58 Q80 68 85 58" stroke="#f5c842" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <line x1="80" y1="68" x2="80" y2="73" stroke="#f5c842" stroke-width="2" stroke-linecap="round"/>
-    <!-- 남자 심볼 -->
-    <circle cx="50" cy="82" r="4" stroke="#6ee7ff" stroke-width="1.5" fill="none"/>
-    <line x1="53" y1="79" x2="57" y2="75" stroke="#6ee7ff" stroke-width="1.5" stroke-linecap="round"/>
-    <line x1="54" y1="78" x2="57" y2="78" stroke="#6ee7ff" stroke-width="1.5" stroke-linecap="round"/>
-    <line x1="57" y1="75" x2="57" y2="78" stroke="#6ee7ff" stroke-width="1.5" stroke-linecap="round"/>
-  </svg>`,
-
-  '6': `<svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- 여자 3명 (치마) -->
-    <circle cx="20" cy="20" r="9" fill="#ff9eb5" opacity="0.85"/>
-    <path d="M12 32 Q20 50 28 32" fill="#ff9eb5" opacity="0.65"/>
-    <circle cx="50" cy="20" r="9" fill="#ff9eb5" opacity="0.85"/>
-    <path d="M42 32 Q50 50 58 32" fill="#ff9eb5" opacity="0.65"/>
-    <circle cx="80" cy="20" r="9" fill="#ff9eb5" opacity="0.85"/>
-    <path d="M72 32 Q80 50 88 32" fill="#ff9eb5" opacity="0.65"/>
-    <!-- 술잔들 -->
-    <path d="M15 58 Q20 68 25 58" stroke="#f5c842" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <line x1="20" y1="68" x2="20" y2="73" stroke="#f5c842" stroke-width="2" stroke-linecap="round"/>
-    <path d="M45 58 Q50 68 55 58" stroke="#f5c842" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <line x1="50" y1="68" x2="50" y2="73" stroke="#f5c842" stroke-width="2" stroke-linecap="round"/>
-    <path d="M75 58 Q80 68 85 58" stroke="#f5c842" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <line x1="80" y1="68" x2="80" y2="73" stroke="#f5c842" stroke-width="2" stroke-linecap="round"/>
-    <!-- 여자 심볼 -->
-    <circle cx="50" cy="80" r="4" stroke="#ff9eb5" stroke-width="1.5" fill="none"/>
-    <line x1="50" y1="84" x2="50" y2="88" stroke="#ff9eb5" stroke-width="1.5" stroke-linecap="round"/>
-    <line x1="47" y1="86" x2="53" y2="86" stroke="#ff9eb5" stroke-width="1.5" stroke-linecap="round"/>
-  </svg>`,
-
-  '7': `<svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- 손 들기 경쟁 -->
-    <!-- 빠른 손 -->
-    <path d="M30 70 L30 28" stroke="#f5c842" stroke-width="5" stroke-linecap="round"/>
-    <path d="M30 28 Q34 18 38 22" stroke="#f5c842" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <!-- 중간 손 -->
-    <path d="M50 70 L50 36" stroke="#c4a0ff" stroke-width="5" stroke-linecap="round"/>
-    <path d="M50 36 Q54 26 58 30" stroke="#c4a0ff" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <!-- 느린 손 -->
-    <path d="M70 70 L70 46" stroke="#ff6b7a" stroke-width="5" stroke-linecap="round"/>
-    <path d="M70 46 Q74 36 78 40" stroke="#ff6b7a" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <!-- 별 (하늘) -->
-    <polygon points="50,8 52,14 58,14 53,18 55,24 50,20 45,24 47,18 42,14 48,14" fill="#f5c842" opacity="0.9"/>
-    <!-- X 표시 (느린 손) -->
-    <line x1="66" y1="56" x2="74" y2="64" stroke="#ff6b7a" stroke-width="2" stroke-linecap="round"/>
-    <line x1="74" y1="56" x2="66" y2="64" stroke="#ff6b7a" stroke-width="2" stroke-linecap="round"/>
-  </svg>`,
-
-  '8': `<svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- 두 사람이 사슬로 연결 -->
-    <circle cx="22" cy="25" r="11" fill="#9b6dff" opacity="0.8"/>
-    <rect x="15" y="38" width="14" height="20" rx="5" fill="#9b6dff" opacity="0.6"/>
-    <circle cx="78" cy="25" r="11" fill="#ff9eb5" opacity="0.8"/>
-    <rect x="71" y="38" width="14" height="20" rx="5" fill="#ff9eb5" opacity="0.6"/>
-    <!-- 사슬 연결 -->
-    <path d="M36 32 Q50 20 64 32" stroke="#f5c842" stroke-width="2.5" fill="none" stroke-dasharray="5 3" stroke-linecap="round"/>
-    <!-- 하트 가운데 -->
-    <path d="M44 50 Q50 44 56 50 Q62 56 50 66 Q38 56 44 50Z" fill="#ff6b7a" opacity="0.85"/>
-    <!-- 술잔 둘 -->
-    <path d="M16 64 Q22 74 28 64" stroke="#f5c842" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <line x1="22" y1="74" x2="22" y2="80" stroke="#f5c842" stroke-width="2" stroke-linecap="round"/>
-    <path d="M72 64 Q78 74 84 64" stroke="#f5c842" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <line x1="78" y1="74" x2="78" y2="80" stroke="#f5c842" stroke-width="2" stroke-linecap="round"/>
-  </svg>`,
-
-  '9': `<svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- 음표 + 말풍선들 (운율) -->
-    <!-- 음표 -->
-    <path d="M46 55 L46 30 L62 25 L62 38 L46 43" stroke="#9b6dff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="42" cy="57" r="6" fill="#9b6dff" opacity="0.8"/>
-    <circle cx="58" cy="40" r="6" fill="#9b6dff" opacity="0.6"/>
-    <!-- 말풍선들 -->
-    <rect x="5"  y="8"  width="28" height="16" rx="6" fill="#2e1a42" stroke="#c4a0ff" stroke-width="1"/>
-    <text x="19" y="20" text-anchor="middle" font-size="8" fill="#c4a0ff" font-family="sans-serif">달</text>
-    <rect x="67" y="8"  width="28" height="16" rx="6" fill="#2e1a42" stroke="#c4a0ff" stroke-width="1"/>
-    <text x="81" y="20" text-anchor="middle" font-size="8" fill="#c4a0ff" font-family="sans-serif">밤</text>
-    <rect x="5"  y="62" width="28" height="16" rx="6" fill="#2e1a42" stroke="#ff6b7a" stroke-width="1" stroke-dasharray="3 2"/>
-    <text x="19" y="74" text-anchor="middle" font-size="8" fill="#ff6b7a" font-family="sans-serif">???</text>
-    <rect x="67" y="62" width="28" height="16" rx="6" fill="#2e1a42" stroke="#c4a0ff" stroke-width="1"/>
-    <text x="81" y="74" text-anchor="middle" font-size="8" fill="#c4a0ff" font-family="sans-serif">별</text>
-  </svg>`,
-
-  '10': `<svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- 범주 소환: 마법 원 + 아이템들 -->
-    <circle cx="50" cy="45" r="30" stroke="#9b6dff" stroke-width="1.5" stroke-dasharray="6 3" fill="none" opacity="0.6"/>
-    <circle cx="50" cy="45" r="20" stroke="#c4a0ff" stroke-width="1" stroke-dasharray="4 2" fill="none" opacity="0.4"/>
-    <!-- 아이템 아이콘들 -->
-    <!-- 불꽃 -->
-    <path d="M26 46 Q28 38 32 40 Q30 32 36 34 Q34 26 42 30 Q40 22 50 20 Q48 30 52 28 Q58 22 60 30 Q66 28 64 36 Q70 38 68 46 Q64 54 50 58 Q36 54 26 46Z" fill="#ff6b7a" opacity="0.7"/>
-    <!-- 별 -->
-    <polygon points="50,30 52,36 58,36 53,40 55,46 50,42 45,46 47,40 42,36 48,36" fill="#f5c842" opacity="0.9"/>
-    <!-- 물방울 -->
-    <path d="M22 55 Q22 48 27 55 Q27 60 24.5 60 Q22 60 22 55Z" fill="#6ee7ff" opacity="0.8"/>
-    <!-- 바람 -->
-    <path d="M68 28 Q76 24 76 30 Q76 36 68 34" stroke="#c4a0ff" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <path d="M70 34 Q80 32 80 38 Q80 44 70 42" stroke="#c4a0ff" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <!-- 막힌 사람 X -->
-    <circle cx="82" cy="72" r="7" fill="#ff6b7a" opacity="0.3" stroke="#ff6b7a" stroke-width="1"/>
-    <line x1="78" y1="68" x2="86" y2="76" stroke="#ff6b7a" stroke-width="2" stroke-linecap="round"/>
-    <line x1="86" y1="68" x2="78" y2="76" stroke="#ff6b7a" stroke-width="2" stroke-linecap="round"/>
-  </svg>`,
-
-  'J': `<svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- 두루마리 규칙서 -->
-    <rect x="22" y="15" width="56" height="62" rx="4" fill="#2e1a42" stroke="#c4a0ff" stroke-width="1.5"/>
-    <rect x="18" y="12" width="64" height="8"  rx="4" fill="#9b6dff" opacity="0.7"/>
-    <rect x="18" y="72" width="64" height="8"  rx="4" fill="#9b6dff" opacity="0.7"/>
-    <!-- 줄들 (규칙 텍스트) -->
-    <line x1="32" y1="32" x2="68" y2="32" stroke="#c4a0ff" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
-    <line x1="32" y1="42" x2="68" y2="42" stroke="#c4a0ff" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
-    <line x1="32" y1="52" x2="58" y2="52" stroke="#c4a0ff" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
-    <line x1="32" y1="62" x2="64" y2="62" stroke="#c4a0ff" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
-    <!-- 깃털 펜 -->
-    <path d="M62 20 Q80 5 85 10 Q75 18 70 35 Q66 28 62 20Z" fill="#f5c842" opacity="0.85"/>
-    <line x1="70" y1="22" x2="62" y2="52" stroke="#f5c842" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
-    <!-- 별 (새 규칙 강조) -->
-    <polygon points="38,28 39.5,32 44,32 40.5,34.5 42,38.5 38,36 34,38.5 35.5,34.5 32,32 36.5,32" fill="#f5c842" opacity="0.9"/>
-  </svg>`,
-
-  'Q': `<svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- 거울 속 거울 (질문의 거울) -->
-    <!-- 바깥 거울 -->
-    <ellipse cx="50" cy="40" rx="34" ry="36" fill="none" stroke="#c4a0ff" stroke-width="2"/>
-    <ellipse cx="50" cy="40" rx="30" ry="32" fill="#1a1025" stroke="#9b6dff" stroke-width="1" opacity="0.8"/>
-    <!-- 안쪽 반사 거울 -->
-    <ellipse cx="50" cy="40" rx="20" ry="22" fill="none" stroke="#c4a0ff" stroke-width="1" stroke-dasharray="4 2" opacity="0.7"/>
-    <!-- 물음표 -->
-    <text x="50" y="35" text-anchor="middle" font-size="22" fill="#f5c842" font-family="sans-serif" font-weight="bold">?</text>
-    <text x="50" y="52" text-anchor="middle" font-size="10" fill="#c4a0ff" font-family="sans-serif" opacity="0.7">?</text>
-    <!-- 거울 손잡이 -->
-    <rect x="46" y="74" width="8" height="14" rx="4" fill="#9b6dff" opacity="0.7"/>
-  </svg>`,
-
-  'K': `<svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- 왕관 + 성배 -->
-    <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f5c842"/><stop offset="100%" stop-color="#e8a000"/></linearGradient></defs>
-    <!-- 왕관 -->
-    <path d="M20 38 L20 22 L35 32 L50 14 L65 32 L80 22 L80 38 Z" fill="url(#cg)" opacity="0.9"/>
-    <rect x="18" y="36" width="64" height="10" rx="3" fill="url(#cg)" opacity="0.8"/>
-    <!-- 왕관 보석 -->
-    <circle cx="50" cy="20" r="4" fill="#ff6b7a" opacity="0.9"/>
-    <circle cx="32" cy="32" r="3" fill="#6ee7ff" opacity="0.8"/>
-    <circle cx="68" cy="32" r="3" fill="#9b6dff" opacity="0.8"/>
-    <!-- 성배 -->
-    <path d="M36 52 Q34 68 42 72 L58 72 Q66 68 64 52Z" fill="url(#cg)" opacity="0.75"/>
-    <rect x="34" y="50" width="32" height="5" rx="2" fill="url(#cg)" opacity="0.9"/>
-    <rect x="44" y="72" width="12" height="5" rx="2" fill="url(#cg)" opacity="0.8"/>
-    <rect x="38" y="77" width="24" height="4" rx="2" fill="url(#cg)" opacity="0.7"/>
-    <!-- 성배 안 액체 -->
-    <path d="M38 58 Q50 62 62 58 L60 68 Q50 72 40 68Z" fill="#ff6b7a" opacity="0.5"/>
-    <!-- 빛나는 효과 -->
-    <circle cx="50" cy="62" r="3" fill="#fff" opacity="0.3"/>
-  </svg>`
-};
-
 const DEFAULT_RULES = {
-  'A':  {name:'폭포수 주문', rule:'카드를 뽑은 사람이 마시기 시작하면 시계 방향으로 모두 연속으로 마십니다. 앞 사람이 멈춰야 나도 멈출 수 있어요.'},
-  '2':  {name:'너에게',      rule:'원하는 한 명을 지목해 마시게 하는 지목 마법입니다.'},
-  '3':  {name:'나에게',      rule:'내가 직접 한 잔을 마십니다. 자기 자신에게 거는 저주.'},
-  '4':  {name:'바닥 마법',   rule:'가장 늦게 바닥을 짚은 사람이 마십니다. 집중!'},
-  '5':  {name:'남자의 저주', rule:'테이블의 남자들이 모두 한 잔 마십니다.'},
-  '6':  {name:'여자의 저주', rule:'테이블의 여자들이 모두 한 잔 마십니다.'},
-  '7':  {name:'하늘 주문',   rule:'가장 늦게 손을 든 사람이 마십니다.'},
-  '8':  {name:'동반자 계약', rule:'한 명을 지목해 파트너로 삼습니다. 이후 한 명이 마실 때마다 파트너도 함께 마십니다. 새 8이 나올 때까지 유지.'},
-  '9':  {name:'운율의 마법', rule:'카드를 뽑은 사람이 단어를 외치면 시계 방향으로 운율이 맞는 단어를 말해야 합니다. 막히면 마십니다.'},
-  '10': {name:'범주 소환',   rule:'범주를 하나 외칩니다(예: 마법 주문 이름). 돌아가며 해당 범주 단어를 대고, 막히면 마십니다.'},
-  'J':  {name:'규칙의 서',   rule:'새 규칙을 만듭니다. 게임이 끝날 때까지 모두가 따라야 합니다.'},
-  'Q':  {name:'질문의 거울', rule:'다른 사람에게 질문하면 상대는 질문으로만 대답해야 합니다. 직접 대답하거나 못하면 마십니다.'},
-  'K':  {name:'저주의 성배', rule:'성배에 원하는 만큼 따릅니다. 네 번째 킹을 뽑은 사람이 성배를 전부 마셔야 합니다.'},
+  'A':  '폭포수 — 모두 마셔라! 순서대로 멈출 수 있음',
+  '2':  '나 — 나 자신에게 지목',
+  '3':  '너 — 다른 사람 지목',
+  '4':  '바닥 — 가장 늦게 손 올린 사람이 마심',
+  '5':  '남자들 — 남성 플레이어 모두 마심',
+  '6':  '여자들 — 여성 플레이어 모두 마심',
+  '7':  '천국 — 가장 늦게 손 든 사람이 마심',
+  '8':  '짝 — 짝을 정해 함께 마심',
+  '9':  '운율 — 단어 운율 맞추기 게임',
+  '10': '카테고리 — 카테고리 말하기 게임',
+  'J':  '규칙 — 새 규칙 만들기',
+  'Q':  '질문 — 질문으로만 대화하기',
+  'K':  '👑 왕 — 성배에 한 잔 추가! 네 번째 왕을 뽑으면 성배를 마셔야 함'
 };
 
-function loadRules() {
-  try { const s = localStorage.getItem('kings_cup_rules'); return s ? JSON.parse(s) : JSON.parse(JSON.stringify(DEFAULT_RULES)); }
-  catch(e) { return JSON.parse(JSON.stringify(DEFAULT_RULES)); }
+// ─── 앱 상태 ──────────────────────────────────────────────────
+const G = {
+  myName:    '',
+  roomCode:  '',
+  isHost:    false,
+  unsubscribe: null,   // Firebase listener unsubscribe fn
+  gameOverShown: false,
+};
+
+// ─── 유틸 ─────────────────────────────────────────────────────
+function genCode() {
+  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:4}, () => c[Math.floor(Math.random()*c.length)]).join('');
 }
-function saveRules() { try { localStorage.setItem('kings_cup_rules', JSON.stringify(rules)); } catch(e) {} }
 
-let rules = loadRules();
-let deck = [], kingsDrawn = 0, lastCard = null, isAnimating = false;
-
-function shuffle(a) { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a; }
-function buildDeck() { const d=[]; SUITS.forEach(s=>RANKS.forEach(r=>d.push({suit:s,rank:r}))); return shuffle(d); }
-
-function show(id) { document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active')); const el=document.getElementById(id); if(el)el.classList.add('active'); }
-function goMain() { closeReveal(); renderDeck(); show('screen-main'); }
-function goEdit() { renderEdit(); show('screen-edit'); }
-function showReveal() { if(!lastCard)return; document.getElementById('reveal-bg').style.display='block'; document.getElementById('reveal-overlay').classList.add('active'); }
-
-/* 파티클 */
-const canvas = document.getElementById('particle-canvas');
-const ctx = canvas.getContext('2d');
-let particles=[], animId=null;
-function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
-window.addEventListener('resize',resizeCanvas); resizeCanvas();
-
-function spawnParticles(isKing) {
-  particles=[];
-  const colors=isKing?['#f5c842','#ffec80','#e8a000','#fff5a0','#ff6b7a']:['#9b6dff','#c4a0ff','#ff6b7a','#ffffff','#f5c842'];
-  const cx=window.innerWidth/2, cy=window.innerHeight*0.32, count=isKing?120:70;
-  for(let i=0;i<count;i++){
-    const angle=Math.random()*Math.PI*2, speed=isKing?(3+Math.random()*9):(2+Math.random()*6);
-    particles.push({x:cx,y:cy,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed-(isKing?4:2),r:isKing?(3+Math.random()*5):(2+Math.random()*4),color:colors[Math.floor(Math.random()*colors.length)],alpha:1,gravity:0.18+Math.random()*0.1,life:1,decay:0.012+Math.random()*0.018,shape:isKing&&Math.random()>0.5?'star':'circle'});
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
   }
-  if(animId)cancelAnimationFrame(animId);
-  animateParticles();
-}
-function drawStar(cx,cy,r){ctx.beginPath();for(let i=0;i<5;i++){const a=(i*4*Math.PI/5)-Math.PI/2,b=(i*4*Math.PI/5+2*Math.PI/5)-Math.PI/2;i===0?ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));ctx.lineTo(cx+(r*0.4)*Math.cos(b),cy+(r*0.4)*Math.sin(b));}ctx.closePath();}
-function animateParticles(){ctx.clearRect(0,0,canvas.width,canvas.height);particles=particles.filter(p=>p.alpha>0.02);particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=p.gravity;p.vx*=0.99;p.life-=p.decay;p.alpha=Math.max(0,p.life);ctx.save();ctx.globalAlpha=p.alpha;ctx.fillStyle=p.color;if(p.shape==='star'){drawStar(p.x,p.y,p.r);ctx.fill();}else{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();}ctx.restore();});if(particles.length>0)animId=requestAnimationFrame(animateParticles);else ctx.clearRect(0,0,canvas.width,canvas.height);}
-
-function flash(type){const el=document.getElementById('flash');el.className=type;setTimeout(()=>el.className='',500);}
-
-function drawCard() {
-  if(deck.length===0||isAnimating)return;
-  isAnimating=true;
-  const card=deck.pop(); lastCard=card;
-  const isKing=card.rank==='K';
-  if(isKing)kingsDrawn=Math.min(4,kingsDrawn+1);
-  const ruleObj=rules[card.rank]||{name:'???',rule:'규칙 없음'};
-  const isLastKing=isKing&&kingsDrawn===4;
-  const isRed=card.suit.cls==='suit-red';
-
-  document.getElementById('reveal-suit').textContent=card.suit.sym;
-  document.getElementById('reveal-suit').className='big-suit '+card.suit.cls;
-  document.getElementById('reveal-rank').textContent=card.rank;
-  document.getElementById('reveal-rank').className='big-rank '+card.suit.cls;
-  document.getElementById('reveal-spell-name').textContent=ruleObj.name;
-  document.getElementById('reveal-spell-rule').textContent=ruleObj.rule;
-  document.getElementById('king-warning').style.display=isLastKing?'block':'none';
-  document.getElementById('reveal-illustration').innerHTML=ILLUSTRATIONS[card.rank]||'';
-
-  const front=document.getElementById('reveal-card-front');
-  front.className='reveal-card-front '+(isKing?'glow-king':isRed?'glow-red':'glow-black');
-  const inner=document.querySelector('.reveal-card-inner');
-  inner.style.animation='none';
-  requestAnimationFrame(()=>{ inner.style.animation=''; inner.style.animation='flip3d 0.55s cubic-bezier(0.23,1,0.32,1) forwards'; });
-
-  document.getElementById('reveal-bg').style.display='block';
-  document.getElementById('reveal-overlay').classList.add('active');
-
-  flash(isKing?'gold':isRed?'red':'purple');
-  setTimeout(()=>spawnParticles(isKing),250);
-
-  document.getElementById('ld-suit').textContent=card.suit.sym;
-  document.getElementById('ld-suit').className='last-drawn-suit '+card.suit.cls;
-  document.getElementById('ld-rank').textContent=card.rank+' '+card.suit.sym;
-  document.getElementById('ld-spell').textContent=ruleObj.name;
-  document.getElementById('last-drawn').classList.add('show');
-
-  renderDeckCount();
-  setTimeout(()=>{isAnimating=false;},600);
-  if(isLastKing)setTimeout(showGameOver,2000);
+  return a;
 }
 
-function closeReveal(){document.getElementById('reveal-overlay').classList.remove('active');document.getElementById('reveal-bg').style.display='none';if(animId){cancelAnimationFrame(animId);ctx.clearRect(0,0,canvas.width,canvas.height);}renderDeck();}
-function showGameOver(){document.getElementById('reveal-overlay').classList.remove('active');document.getElementById('reveal-bg').style.display='none';show('screen-gameover');}
-
-function renderDeckCount(){document.getElementById('remain-count').textContent=deck.length;document.getElementById('kings-count').textContent=kingsDrawn;document.getElementById('kings-bar').style.width=(kingsDrawn/4*100)+'%';}
-function renderDeck(){
-  const wrap=document.getElementById('deck-stack-wrap'); renderDeckCount();
-  if(deck.length===0){wrap.innerHTML=`<div class="deck-empty"><span>🃏</span>모든 카드가 소진됐습니다</div>`;return;}
-  wrap.innerHTML=`<div class="deck-stack" onclick="drawCard()"><div class="layer"></div><div class="layer"></div><div class="top-card"><span class="deck-back-pattern">🔮</span><span class="deck-back-label">카드를 뽑으세요</span></div></div>`;
+function makeDeck() {
+  let d = [];
+  for (const s of SUITS) for (const r of RANKS) d.push({r,s});
+  return shuffle(d);
 }
 
-function renderEdit(){
-  const list=document.getElementById('edit-list'); list.innerHTML='';
-  RANKS.forEach(r=>{
-    const row=document.createElement('div'); row.className='edit-row';
-    row.innerHTML=`<div class="rank-badge">${r}</div><div class="edit-fields"><input type="text" id="en-${r}" value="${(rules[r]?.name||'').replace(/"/g,'&quot;')}" placeholder="주문 이름"><textarea id="er-${r}" placeholder="규칙 설명">${rules[r]?.rule||''}</textarea></div>`;
-    list.appendChild(row);
-  });
+function cardColor(suit) {
+  return (suit === '♥' || suit === '♦') ? 'card-red' : 'card-black';
 }
-function saveEdit(){RANKS.forEach(r=>{const n=document.getElementById('en-'+r),ru=document.getElementById('er-'+r);if(n&&ru)rules[r]={name:n.value,rule:ru.value};});saveRules();goMain();}
-function resetRules(){if(confirm('기본 룰로 초기화할까요?')){rules=JSON.parse(JSON.stringify(DEFAULT_RULES));saveRules();renderEdit();}}
-function resetGame(){if(confirm('새 게임을 시작할까요?')){deck=buildDeck();kingsDrawn=0;lastCard=null;document.getElementById('last-drawn').classList.remove('show');renderDeck();show('screen-main');}}
 
-deck=buildDeck(); renderDeck();
+function fmtTime(ts) {
+  const d = new Date(ts);
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+
+function roomRef(code) { return ref(db, 'rooms/' + code); }
+
+// ─── UI 헬퍼 ──────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+}
+
+function showLoading(msg) {
+  document.getElementById('loading-msg').textContent = msg || '처리 중...';
+  document.getElementById('overlay-loading').classList.remove('hidden');
+}
+function hideLoading() {
+  document.getElementById('overlay-loading').classList.add('hidden');
+}
+
+function showOverlay(id) {
+  document.getElementById(id).classList.remove('hidden');
+}
+function closeOverlay(id) {
+  document.getElementById(id).classList.add('hidden');
+}
+
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  setTimeout(() => { el.textContent = ''; }, 3000);
+}
+
+// ─── LOBBY ───────────────────────────────────────────────────
+async function createRoom() {
+  const name = document.getElementById('input-name').value.trim();
+  if (!name) { showErr('name-error','이름을 입력해 주세요'); return; }
+
+  showLoading('방을 만드는 중...');
+  const code = genCode();
+  const deck = makeDeck();
+
+  const roomData = {
+    code,
+    status:      'waiting',
+    players:     { 0: { name, joined: Date.now() } },
+    playerOrder: [name],
+    hostName:    name,
+    deck,
+    drawn:       [],
+    kingsDrawn:  0,
+    currentTurn: 0,
+    gameOver:    false,
+    log:         [{ t: Date.now(), msg: `${name}님이 방을 만들었습니다` }],
+    rules:       DEFAULT_RULES,
+    lastUpdate:  Date.now(),
+  };
+
+  try {
+    await set(roomRef(code), roomData);
+    hideLoading();
+    G.myName   = name;
+    G.roomCode = code;
+    G.isHost   = true;
+    enterWaiting();
+  } catch(e) {
+    hideLoading();
+    showErr('name-error','저장 실패: ' + e.message);
+  }
+}
+
+async function joinRoom() {
+  const name = document.getElementById('input-name').value.trim();
+  const code = document.getElementById('input-room').value.trim().toUpperCase();
+  if (!name) { showErr('name-error','이름을 입력해 주세요'); return; }
+  if (code.length !== 4) { showErr('join-error','방 코드 4자리를 입력해 주세요'); return; }
+
+  showLoading('방을 찾는 중...');
+  try {
+    const snap = await get(roomRef(code));
+    if (!snap.exists()) { hideLoading(); showErr('join-error','방을 찾을 수 없습니다'); return; }
+    const room = snap.val();
+    if (room.status === 'playing') { hideLoading(); showErr('join-error','이미 게임이 시작된 방입니다'); return; }
+
+    const order = room.playerOrder || [];
+    if (!order.includes(name)) {
+      const newOrder = [...order, name];
+      const idx = newOrder.length - 1;
+      await update(roomRef(code), {
+        [`players/${idx}`]: { name, joined: Date.now() },
+        playerOrder: newOrder,
+        [`log/${Date.now()}`]: { t: Date.now(), msg: `${name}님이 입장했습니다` },
+        lastUpdate: Date.now(),
+      });
+    }
+
+    hideLoading();
+    G.myName   = name;
+    G.roomCode = code;
+    G.isHost   = false;
+    enterWaiting();
+  } catch(e) {
+    hideLoading();
+    showErr('join-error','오류: ' + e.message);
+  }
+}
+
+// ─── WAITING ROOM ─────────────────────────────────────────────
+function enterWaiting() {
+  document.getElementById('display-room-code').textContent = G.roomCode;
+  showScreen('waiting');
+  startListening();
+}
+
+function updateWaiting(room) {
+  const order = room.playerOrder || [];
+  const players = room.players || {};
+
+  document.getElementById('player-count-waiting').textContent = `(${order.length}명)`;
+
+  const listEl = document.getElementById('players-list-waiting');
+  listEl.innerHTML = order.map((pName, i) => {
+    const isHost = pName === room.hostName;
+    const isMe   = pName === G.myName;
+    return `<div class="player-chip online">
+      <div class="player-dot"></div>
+      <span class="player-name-text">${pName}</span>
+      ${isHost ? '<span class="host-badge">방장</span>' : ''}
+      ${isMe   ? '<span class="me-badge" style="margin-left:auto">나</span>' : ''}
+    </div>`;
+  }).join('');
+
+  const amHost = room.hostName === G.myName;
+  document.getElementById('host-controls').style.display     = amHost ? 'block' : 'none';
+  document.getElementById('guest-waiting-msg').style.display = amHost ? 'none'  : 'block';
+
+  const btn = document.getElementById('btn-start');
+  if (order.length >= 2) {
+    btn.disabled     = false;
+    btn.textContent  = `✦ 게임 시작 (${order.length}명)`;
+  } else {
+    btn.disabled     = true;
+    btn.textContent  = '게임 시작 (최소 2명 필요)';
+  }
+}
+
+async function startGame() {
+  showLoading('게임 시작 중...');
+  try {
+    await update(roomRef(G.roomCode), {
+      status:     'playing',
+      lastUpdate: Date.now(),
+      [`log/${Date.now()}`]: { t: Date.now(), msg: '⚔️ 게임이 시작되었습니다!' },
+    });
+    hideLoading();
+  } catch(e) { hideLoading(); }
+}
+
+// ─── REALTIME LISTENER ────────────────────────────────────────
+function startListening() {
+  if (G.unsubscribe) G.unsubscribe();
+
+  const r = roomRef(G.roomCode);
+  const handler = (snap) => {
+    if (!snap.exists()) return;
+    const room = snap.val();
+
+    const waiting = document.getElementById('screen-waiting').classList.contains('active');
+    const gaming  = document.getElementById('screen-game').classList.contains('active');
+
+    if (waiting) {
+      updateWaiting(room);
+      if (room.status === 'playing') {
+        showScreen('game');
+        G.gameOverShown = false;
+        updateGame(room);
+      }
+    } else if (gaming) {
+      updateGame(room);
+    }
+  };
+
+  onValue(r, handler);
+  G.unsubscribe = () => off(r, 'value', handler);
+}
+
+// ─── GAME UI ──────────────────────────────────────────────────
+function updateGame(room) {
+  const drawn  = room.drawn  || [];
+  const order  = room.playerOrder || [];
+  const deck   = room.deck   || [];
+  const remaining = deck.length - drawn.length;
+
+  document.getElementById('cards-remaining').textContent = remaining;
+  document.getElementById('game-room-code').textContent  = G.roomCode;
+
+  // Kings
+  const kc = room.kingsDrawn || 0;
+  document.getElementById('kings-count-text').textContent = `${kc} / 4`;
+  for (let i = 0; i < 4; i++) {
+    const slot = document.getElementById('king-'+i);
+    slot.className = 'king-slot';
+    if (i < kc) {
+      slot.classList.add(kc >= 4 ? 'danger' : 'filled');
+      slot.textContent = '♚';
+    } else {
+      slot.textContent = '♔';
+    }
+  }
+
+  // Turn
+  const turn      = (room.currentTurn || 0) % order.length;
+  const turnPlayer = order[turn];
+  const isMyTurn   = turnPlayer === G.myName && !room.gameOver;
+
+  document.getElementById('my-turn-banner').style.display     = isMyTurn    ? 'block' : 'none';
+  document.getElementById('others-turn-banner').style.display = !isMyTurn   ? 'block' : 'none';
+  if (!isMyTurn && turnPlayer) {
+    document.getElementById('current-turn-name').textContent = turnPlayer;
+  }
+
+  const drawBtn = document.getElementById('btn-draw');
+  drawBtn.disabled = !isMyTurn;
+  drawBtn.textContent = isMyTurn ? '✦ 카드 뽑기' : '카드 뽑기';
+
+  // Last drawn card
+  if (drawn.length > 0) {
+    const last = drawn[drawn.length-1];
+    const color = cardColor(last.s);
+    document.getElementById('card-display').innerHTML = `
+      <div class="playing-card">
+        <div class="card-rank ${color}">${last.r}</div>
+        <div class="card-suit ${color}">${last.s}</div>
+      </div>`;
+    document.getElementById('card-who-info').innerHTML =
+      `<strong>${last.by}</strong>님이 뽑음`;
+
+    const rule = (room.rules || DEFAULT_RULES)[last.r];
+    if (rule) {
+      const rd = document.getElementById('rule-display');
+      rd.style.display = 'block';
+      document.getElementById('rule-rank').textContent = last.r;
+      document.getElementById('rule-text').textContent = rule;
+    }
+  }
+
+  // Log
+  const log   = room.log || {};
+  const logEl = document.getElementById('game-log');
+  const entries = Object.values(log)
+    .sort((a,b) => b.t - a.t)
+    .slice(0, 25);
+  logEl.innerHTML = entries.map(e => {
+    let cls = '';
+    if (e.msg.includes('👑') || e.msg.includes('왕')) cls = 'log-king';
+    if (e.msg.includes('💀') || e.msg.includes('성배를 마셨')) cls = 'log-gameover';
+    return `<div class="log-entry ${cls}"><span class="log-time">${fmtTime(e.t)}</span>${e.msg}</div>`;
+  }).join('');
+
+  // Game over
+  if (room.gameOver && !G.gameOverShown) {
+    G.gameOverShown = true;
+    const who = drawn.length > 0 ? drawn[drawn.length-1].by : '???';
+    document.getElementById('gameover-msg').innerHTML =
+      `<strong style="color:var(--crimson-light)">${who}</strong>님이 네 번째 왕을 뽑았습니다!<br>성배를 마신 자여, 왕국에 경의를.`;
+    setTimeout(() => showOverlay('overlay-gameover'), 400);
+  }
+}
+
+// ─── DRAW CARD ────────────────────────────────────────────────
+async function drawCard() {
+  const btn = document.getElementById('btn-draw');
+  btn.disabled = true;
+
+  try {
+    const snap = await get(roomRef(G.roomCode));
+    if (!snap.exists()) return;
+    const room = snap.val();
+
+    const order = room.playerOrder || [];
+    const turn  = (room.currentTurn || 0) % order.length;
+    if (order[turn] !== G.myName) return;
+
+    const drawn = room.drawn || [];
+    const deck  = room.deck  || [];
+    if (drawn.length >= deck.length) return;
+
+    const card = deck[drawn.length];
+    const newDrawn = [...drawn, { r: card.r, s: card.s, by: G.myName, t: Date.now() }];
+
+    let kingsDrawn   = room.kingsDrawn || 0;
+    let gameOver     = false;
+    let kingOverlay  = false;
+    const isKing     = card.r === 'K';
+
+    if (isKing) {
+      kingsDrawn++;
+      if (kingsDrawn >= 4) {
+        gameOver = true;
+      } else {
+        kingOverlay = true;
+      }
+    }
+
+    const nextTurn = (turn + 1) % order.length;
+    const logKey   = `log/draw_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const logMsg   = isKing
+      ? (gameOver
+          ? `💀 ${G.myName}이/가 네 번째 왕(${card.s})을 뽑아 성배를 마셨습니다!`
+          : `👑 ${G.myName}이/가 왕(${card.s}) 뽑음 — 성배 ${kingsDrawn}/4`)
+      : `${G.myName}이/가 ${card.r}${card.s} 뽑음`;
+
+    await update(roomRef(G.roomCode), {
+      drawn:       newDrawn,
+      kingsDrawn,
+      gameOver,
+      currentTurn: nextTurn,
+      lastUpdate:  Date.now(),
+      [logKey]: { t: Date.now(), msg: logMsg },
+    });
+
+    if (kingOverlay) {
+      const kc = kingsDrawn;
+      document.getElementById('king-overlay-icon').textContent = kc === 3 ? '⚠️' : '👑';
+      document.getElementById('king-overlay-title').textContent =
+        kc === 3 ? '위험! 세 번째 왕!' : `${kc}번째 왕 등장!`;
+      document.getElementById('king-overlay-msg').textContent =
+        kc === 3
+          ? '다음에 왕을 뽑는 사람이 성배를 통째로 마셔야 합니다!'
+          : `성배에 왕이 ${kc}명 모였습니다. 4번째 왕을 조심하세요!`;
+      showOverlay('overlay-king');
+    }
+
+  } catch(e) {
+    console.error(e);
+    btn.disabled = false;
+  }
+}
+
+// ─── NEW GAME ─────────────────────────────────────────────────
+async function startNewGame() {
+  closeOverlay('overlay-gameover');
+  showLoading('새 게임 준비 중...');
+  try {
+    const deck = makeDeck();
+    await update(roomRef(G.roomCode), {
+      deck,
+      drawn:       [],
+      kingsDrawn:  0,
+      currentTurn: 0,
+      gameOver:    false,
+      lastUpdate:  Date.now(),
+      log: { [`start_${Date.now()}`]: { t: Date.now(), msg: '🎮 새 게임이 시작되었습니다!' } },
+    });
+    G.gameOverShown = false;
+    document.getElementById('card-display').innerHTML = '<div class="card-back">👑</div>';
+    document.getElementById('card-who-info').innerHTML = '';
+    document.getElementById('rule-display').style.display = 'none';
+    hideLoading();
+  } catch(e) { hideLoading(); }
+}
+
+function confirmNewGame() {
+  if (confirm('새 게임을 시작하시겠습니까?')) startNewGame();
+}
+
+// ─── MISC ─────────────────────────────────────────────────────
+function viewRules() {
+  const rules = DEFAULT_RULES;
+  document.getElementById('rules-content').innerHTML =
+    Object.entries(rules).map(([rank, desc]) =>
+      `<div class="rule-item">
+        <span class="rule-item-rank">${rank}</span>
+        <span class="rule-item-desc">${desc}</span>
+      </div>`
+    ).join('');
+  showOverlay('overlay-rules');
+}
+
+function copyRoomCode() {
+  const code = G.roomCode;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(code)
+      .then(() => alert(`방 코드 "${code}" 복사 완료!`))
+      .catch(() => alert(`방 코드: ${code}`));
+  } else {
+    alert(`방 코드: ${code}`);
+  }
+}
+
+function leaveGame() {
+  if (!confirm('방을 나가시겠습니까?')) return;
+  if (G.unsubscribe) G.unsubscribe();
+  G.roomCode = '';
+  G.myName   = '';
+  G.isHost   = false;
+  G.gameOverShown = false;
+  showScreen('lobby');
+}
+
+// input 자동 대문자
+document.getElementById('input-room').addEventListener('input', function() {
+  this.value = this.value.toUpperCase();
+});
+
+// Firebase 설정 자동 감지
+const configured = firebaseConfig.apiKey !== 'YOUR_API_KEY';
+const notice = document.getElementById('firebase-notice');
+if (configured) notice.style.display = 'none';
+
+// ─── type="module" 내부 함수를 HTML onclick에서 접근 가능하도록 전역 등록 ───
+window.createRoom      = createRoom;
+window.joinRoom        = joinRoom;
+window.startGame       = startGame;
+window.drawCard        = drawCard;
+window.startNewGame    = startNewGame;
+window.confirmNewGame  = confirmNewGame;
+window.viewRules       = viewRules;
+window.copyRoomCode    = copyRoomCode;
+window.leaveGame       = leaveGame;
+window.closeOverlay    = closeOverlay;
 </script>
 </body>
 </html>
